@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Таро-бот Милы - Демо</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #1a2332;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .phone-container {
+            width: 100%;
+            max-width: 375px;
+            height: 100vh;
+            max-height: 812px;
+            background: #1a2332;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            height: 44px;
+            background: #2a3441;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .header {
+            background: #2a3441;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #3a4553;
+        }
+        .bot-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-right: 10px;
+        }
+        .bot-name { color: white; font-weight: 600; font-size: 15px; }
+        .bot-status { color: #8a96a3; font-size: 12px; }
+        .chat-container {
+            flex: 1; overflow-y: auto; padding: 12px; background: #1a2332;
+        }
+        .message { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .message.bot { align-items: flex-start; }
+        .message.user { align-items: flex-end; }
+        .message-bubble {
+            max-width: 80%; padding: 8px 12px; border-radius: 12px;
+            word-wrap: break-word; line-height: 1.35; font-size: 13px;
+        }
+        .message.bot .message-bubble { background: #2a3441; color: #f0f2f5; border-bottom-left-radius: 4px; }
+        .message.user .message-bubble { background: #5a9fd4; color: white; border-bottom-right-radius: 4px; }
+        .message-time { font-size: 10px; color: #8a96a3; margin-top: 3px; padding: 0 4px; }
+        .button-group { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; width: 100%; }
+        .inline-button {
+            background: #3a4553; border: 1px solid #4a5563; color: #5a9fd4;
+            padding: 10px 14px; border-radius: 8px; cursor: pointer;
+            text-align: center; font-size: 13px; transition: background 0.2s; user-select: none;
+        }
+        .inline-button:active { background: #4a5563; opacity: 0.8; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-top: 6px;
+            grid-auto-rows: 1fr; /* make all cells the same height */
+        }
+        .menu-item {
+            background: #2a3441; border: 1px solid #3a4553; padding: 8px;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s;
+            text-align: center; user-select: none;
+            display: flex; flex-direction: column; justify-content: center; height: 100%;
+        }
+        .menu-item:active { background: #3a4553; opacity: 0.8; }
+        .menu-item-title { color: white; font-weight: 600; font-size: 12px; margin-bottom: 2px; line-height: 1.2; }
+        .menu-item-price { color: #5a9fd4; font-weight: 600; font-size: 13px; }
+        .invoice-card { background: #2a3441; border: 1px solid #3a4553; border-radius: 10px; padding: 14px; margin-top: 8px; }
+        .invoice-title { color: white; font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+        .invoice-price { color: #5a9fd4; font-size: 18px; font-weight: 700; margin: 8px 0; }
+        .pay-button {
+            background: #5a9fd4; color: white; padding: 10px; border-radius: 8px;
+            text-align: center; font-weight: 600; cursor: pointer; font-size: 14px; user-select: none;
+        }
+        .pay-button:active { opacity: 0.8; }
+        .payment-methods {
+            display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
+        }
+        .payment-method {
+            background: #3a4553; border: 1px solid #4a5563; padding: 10px 12px;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+            user-select: none;
+        }
+        .payment-method:active { background: #4a5563; opacity: 0.8; }
+        .payment-method-name { color: white; font-weight: 500; font-size: 13px; }
+        .payment-method-icon { font-size: 18px; }
+        .typing-indicator { display: flex; gap: 4px; padding: 10px 14px; }
+        .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: #8a96a3; animation: typing 1.4s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:0.7;} 30%{transform:translateY(-10px);opacity:1;} }
+        .input-area {
+            background: #2a3441; padding: 10px 14px; display: flex; align-items: center;
+            border-top: 1px solid #3a4553; flex-shrink: 0;
+        }
+        .input-field {
+            flex: 1; background: #3a4553; border: none; border-radius: 20px;
+            padding: 8px 14px; color: white; font-size: 14px; outline: none;
+        }
+        .send-btn {
+            width: 32px; height: 32px; border-radius: 50%; background: #5a9fd4;
+            border: none; color: white; font-size: 16px; margin-left: 8px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>🔋 100%</span>
+        </div>
+        <div class="header">
+            <div class="bot-avatar">🔮</div>
+            <div style="flex: 1;">
+                <div class="bot-name">Таро-бот Милы</div>
+                <div class="bot-status">online</div>
+            </div>
+        </div>
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot">
+                <div class="message-bubble">
+                    <strong>Таро-бот Милы</strong><br><br>
+                    Привет! Я — Мила, таролог с 9-летним опытом. Мой бот поможет вам найти ответы на важные вопросы и понять будущее через карты Таро прямо в Telegram. ✨<br><br>
+                    <strong>🔮 Что предлагает бот</strong><br><br>
+                    🌟 Прогнозы на будущее<br><br>
+                    🌟 Расклады на любовь и отношения ❤️<br><br>
+                    🌟 Помощь в принятии решений ⚖️<br><br>
+                    🌟 Анализ текущей ситуации 🔍<br><br>
+                    По всем вопросам пишите <a href="https://t.me/sunnyweather17" style="color: #5a9fd4; text-decoration: none;">@sunnyweather17</a>
+                </div>
+                <div class="message-time">9:42 AM</div>
+                <div class="button-group">
+                    <div class="inline-button" onclick="showMenu()">🚀 Начни сейчас</div>
+                </div>
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" class="input-field" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        let currentState = 'start';
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
+
+        function addMessage(text, isBot, showButtons = false, buttons = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot' : 'user'}`;
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = text;
+            messageDiv.appendChild(bubble);
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            messageDiv.appendChild(time);
+            if (showButtons && buttons.length > 0) {
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'button-group';
+                buttons.forEach(btn => {
+                    const button = document.createElement('div');
+                    button.className = 'inline-button';
+                    button.textContent = btn.text;
+                    button.onclick = btn.action;
+                    buttonGroup.appendChild(button);
+                });
+                messageDiv.appendChild(buttonGroup);
+            }
+            chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function showMenu() {
+            if (currentState !== 'menu') {
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    const menuHTML = '<strong>🔮 Выберите свою категорию</strong>';
+                    const menuButtons = [
+                        { text: '🔮 Советы\n$5.00', action: () => selectReading('single', '$5.00', 'Советы') },
+                        { text: '✨ Саморазвитие\n$5.00', action: () => selectReading('three', '$5.00', 'Саморазвитие') },
+                        { text: '🌟 Здоровье\n$5.00', action: () => selectReading('celtic', '$5.00', 'Здоровье') },
+                        { text: '💕 Любовь и отношения\n$5.00', action: () => selectReading('love', '$5.00', 'Любовь и отношения') },
+                        { text: '💼 Финансы и работа\n$5.00', action: () => selectReading('career', '$5.00', 'Финансы и работа') },
+                        { text: '☀️ Советы\n$5.00', action: () => selectReading('daily', '$5.00', 'Советы') }
+                    ];
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot';
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble';
+                    bubble.innerHTML = menuHTML;
+                    messageDiv.appendChild(bubble);
+                    const time = document.createElement('div');
+                    time.className = 'message-time';
+                    time.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    messageDiv.appendChild(time);
+                    const menuGrid = document.createElement('div');
+                    menuGrid.className = 'menu-grid';
+                    menuButtons.forEach(btn => {
+                        const menuItem = document.createElement('div');
+                        menuItem.className = 'menu-item';
+                        const parts = btn.text.split('\n');
+                        menuItem.innerHTML = `<div class="menu-item-title">${parts[0]}</div><div class="menu-item-price">${parts[1] || '$5.00'}</div>`;
+                        menuItem.onclick = btn.action;
+                        menuGrid.appendChild(menuItem);
+                    });
+                    messageDiv.appendChild(menuGrid);
+                    chatContainer.appendChild(messageDiv);
+                    scrollToBottom();
+                    currentState = 'menu';
+                }, 500);
+            }
+        }
+
+        function selectReading(type, price, name) {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                const invoiceHTML = `
+                    <div class="invoice-card">
+                        <div class="invoice-title">${getReadingTitle(type)}</div>
+                        <div class="invoice-price">${price}</div>
+                        <div class="pay-button" onclick="processPayment('${type}')">💳 Pay ${price}</div>
+                    </div>
+                `;
+                addMessage(invoiceHTML, true);
+                currentState = 'invoice';
+            }, 500);
+        }
+
+        function getReadingTitle(type) {
+            const titles = {
+                'single': '🔮 Советы',
+                'three': '✨ Саморазвитие',
+                'celtic': '🌟 Здоровье',
+                'love': '💕 Любовь и отношения',
+                'career': '💼 Финансы и работа',
+                'daily': '☀️ Советы'
+            };
+            return titles[type] || '🔮 Tarot Reading';
+        }
+
+        function processPayment(type) {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                showPaymentMethods(type);
+            }, 500);
+        }
+
+        function showPaymentMethods(type) {
+            const paymentMethodsHTML = `
+                <strong>💳 Выберите способ оплаты</strong>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="selectPaymentMethod('${type}', 'card')">
+                        <span class="payment-method-name">💳 Банковская карта</span>
+                        <span class="payment-method-icon">➤</span>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('${type}', 'qiwi')">
+                        <span class="payment-method-name">↔️ MIA</span>
+                        <span class="payment-method-icon">➤</span>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('${type}', 'crypto')">
+                        <span class="payment-method-name">₿ Криптовалюта</span>
+                        <span class="payment-method-icon">➤</span>
+                    </div>
+                </div>
+            `;
+            addMessage(paymentMethodsHTML, true);
+            currentState = 'payment_methods';
+        }
+
+        function selectPaymentMethod(type, method) {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                if (method === 'card') {
+                    showBankOptions(type);
+                } else if (method === 'qiwi') {
+                    showMIAOption(type);
+                } else if (method === 'crypto') {
+                    showCryptoOptions(type);
+                } else {
+                    // After selecting other payment methods, redirect to chat
+                    redirectToChat();
+                }
+            }, 500);
+        }
+
+        function showBankOptions(type) {
+            const bankOptionsHTML = `
+                <strong>💳 Выберите банк</strong>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="copyBankAccount('0000 0000 0000 0000', 'Victoriabank', '${type}')">
+                        <div>
+                            <div class="payment-method-name">Victoriabank</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px; font-family: monospace;">0000 0000 0000 0000</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                    <div class="payment-method" onclick="copyBankAccount('0000 0000 0000 0000', 'MAIB', '${type}')">
+                        <div>
+                            <div class="payment-method-name">MAIB</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px; font-family: monospace;">0000 0000 0000 0000</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                    <div class="payment-method" onclick="copyBankAccount('0000 0000 0000 0000', 'OTP', '${type}')">
+                        <div>
+                            <div class="payment-method-name">OTP</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px; font-family: monospace;">0000 0000 0000 0000</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                </div>
+            `;
+            addMessage(bankOptionsHTML, true);
+            currentState = 'bank_selection';
+        }
+
+        function copyBankAccount(account, bankName, type) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(account).then(() => {
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ ${bankName} номер счёта скопирован: ${account}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = account;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ ${bankName} номер счёта скопирован: ${account}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            });
+        }
+
+        function showMIAOption(type) {
+            const miaOptionHTML = `
+                <strong>↔️ MIA</strong>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="copyMIANumber('68766888', '${type}')">
+                        <div>
+                            <div class="payment-method-name">068 766 888</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px;">Artiom C</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                </div>
+            `;
+            addMessage(miaOptionHTML, true);
+            currentState = 'mia_selection';
+        }
+
+        function copyMIANumber(number, type) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(number).then(() => {
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ MIA номер скопирован: ${number}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = number;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ MIA номер скопирован: ${number}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            });
+        }
+
+        function showCryptoOptions(type) {
+            const cryptoOptionsHTML = `
+                <strong>₿ Криптовалюта</strong>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="copyCryptoAddress('LTCXXXX XXX XXXXXXXXXXX', 'USD', '${type}')">
+                        <div>
+                            <div class="payment-method-name">USD</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px; font-family: monospace;">LTCXXXX XXX XXXXXXXXXXX</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                    <div class="payment-method" onclick="copyCryptoAddress('LTCXXXX XXX XXXXXXXXXXX', 'LTC', '${type}')">
+                        <div>
+                            <div class="payment-method-name">LTC</div>
+                            <div style="color: #8a96a3; font-size: 11px; margin-top: 2px; font-family: monospace;">LTCXXXX XXX XXXXXXXXXXX</div>
+                        </div>
+                        <span class="payment-method-icon">📋</span>
+                    </div>
+                </div>
+            `;
+            addMessage(cryptoOptionsHTML, true);
+            currentState = 'crypto_selection';
+        }
+
+        function copyCryptoAddress(address, currency, type) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(address).then(() => {
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ ${currency} адрес скопирован: ${address}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = address;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`✅ ${currency} адрес скопирован: ${address}`, true, true, [
+                        { text: '✅ Подтвердить платеж', action: () => confirmPayment(type) }
+                    ]);
+                }, 500);
+            });
+        }
+
+        function confirmPayment(type) {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                addMessage('✅ Платеж подтвержден!', true);
+                setTimeout(() => {
+                    redirectToChat();
+                }, 1000);
+            }, 500);
+        }
+
+        function redirectToTelegram() {
+            window.open('https://t.me/sunnyweather17', '_blank');
+        }
+
+        function redirectToChat() {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                const chatWelcome = `
+                    <strong>💬 Добро пожаловать в чат поддержки</strong><br><br>
+                    Теперь вы можете напрямую общаться с нашим администратором о прочитанном или задавать любые вопросы!
+                `;
+                addMessage(chatWelcome, true, true, [
+                    { text: '🎴 Перетасуйте карты', action: redirectToTelegram },
+                    { text: '📋 Вернуться в меню', action: () => { location.reload(); } },
+                    { text: '❌ Завершить чат', action: endChat }
+                ]);
+                currentState = 'chat';
+            }, 500);
+        }
+
+        function endChat() {
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                addMessage('💬 Chat ended. You can start a new chat after your next order.\n\nThank you for using our service! ✨', true, true, [
+                    { text: '🎴 Перетасуйте карты', action: redirectToTelegram },
+                    { text: '📋 Вернуться в меню', action: () => { location.reload(); } }
+                ]);
+                currentState = 'start';
+            }, 500);
+        }
+
+        function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (text) {
+                addMessage(text, false);
+                userInput.value = '';
+                if (currentState === 'chat') {
+                    showTyping();
+                    setTimeout(() => {
+                        removeTyping();
+                        addMessage('✅ Your message has been sent! We\'ll get back to you soon. ✨', true);
+                    }, 500);
+                    return;
+                }
+                if (text.toLowerCase().includes('menu') || text === '/menu') {
+                    showMenu();
+                } else if (text === '/start') {
+                    location.reload();
+                } else {
+                    showTyping();
+                    setTimeout(() => {
+                        removeTyping();
+                        addMessage('👋 Hi! To chat with our admin, please complete a reading first.\n\nChoose a reading to get started! 🔮', true, true, [
+                            { text: '🚀 Start Order', action: showMenu }
+                        ]);
+                    }, 500);
+                }
+            }
+        }
+
+        scrollToBottom();
+    </script>
+</body>
+</html>
+

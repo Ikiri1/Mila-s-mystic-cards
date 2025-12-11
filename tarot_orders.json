@@ -1,0 +1,58 @@
+{
+  "8208671058_1765494518.638947": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:38.638998"
+  },
+  "8208671058_1765494522.93986": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:42.939883"
+  },
+  "8208671058_1765494527.935711": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:47.935741"
+  },
+  "8208671058_1765494531.507776": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:51.507792"
+  },
+  "8208671058_1765494531.81636": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:51.816387"
+  },
+  "8208671058_1765494532.939591": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "single_card",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:08:52.939619"
+  },
+  "8208671058_1765494791.704582": {
+    "user_id": 8208671058,
+    "username": null,
+    "reading_type": "celtic_cross",
+    "amount": 500,
+    "currency": "USD",
+    "timestamp": "2025-12-12T01:13:11.704636"
+  }
+}
